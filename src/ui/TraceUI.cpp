@@ -221,6 +221,48 @@ void TraceUI::cb_superSampleSlides(Fl_Widget* o, void* v)
 	rt->numSuperSample = int(((Fl_Slider*)o)->value());
 }
 
+void TraceUI::cb_depthOfFieldButton(Fl_Widget* o, void* v)
+{
+	TraceUI* pUI = ((TraceUI*)(o->user_data()));
+	RayTracer* rt = pUI->raytracer;
+	rt->depthOfField = !rt->depthOfField;
+}
+
+void TraceUI::cb_softShadowButton(Fl_Widget* o, void* v)
+{
+	TraceUI* pUI = ((TraceUI*)(o->user_data()));
+	RayTracer* rt = pUI->raytracer;
+	rt->softShadow = !rt->softShadow;
+}
+
+void TraceUI::cb_glossyReflectionButton(Fl_Widget* o, void* v)
+{
+	TraceUI* pUI = ((TraceUI*)(o->user_data()));
+	RayTracer* rt = pUI->raytracer;
+	rt->glossyReflection = !rt->glossyReflection;
+}
+
+void TraceUI::cb_motionBlurButton(Fl_Widget* o, void* v)
+{
+	TraceUI* pUI = ((TraceUI*)(o->user_data()));
+	RayTracer* rt = pUI->raytracer;
+	rt->motionBlur = !rt->motionBlur;
+}
+
+void TraceUI::cb_focalLengthSlides(Fl_Widget* o, void* v)
+{
+	TraceUI* pUI = ((TraceUI*)(o->user_data()));
+	RayTracer* rt = pUI->raytracer;
+	rt->focalLength = double(((Fl_Slider*)o)->value());
+}
+
+void TraceUI::cb_apertureSlides(Fl_Widget* o, void* v)
+{
+	TraceUI* pUI = ((TraceUI*)(o->user_data()));
+	RayTracer* rt = pUI->raytracer;
+	rt->aperture = double(((Fl_Slider*)o)->value());
+}
+
 void TraceUI::show()
 {
 	m_mainWindow->show();
@@ -261,7 +303,7 @@ TraceUI::TraceUI() {
 	// init.
 	m_nDepth = 0;
 	m_nSize = 150;
-	m_mainWindow = new Fl_Window(100, 40, 320, 200, "Ray <Not Loaded>");
+	m_mainWindow = new Fl_Window(100, 40, 320, 300, "Ray <Not Loaded>");
 		m_mainWindow->user_data((void*)(this));	// record self to be used by static callback functions
 		// install menu bar
 		m_menubar = new Fl_Menu_Bar(0, 0, 320, 25);
@@ -324,6 +366,46 @@ TraceUI::TraceUI() {
 		m_superSampleSlider->value(1);
 		m_superSampleSlider->align(FL_ALIGN_RIGHT);
 		m_superSampleSlider->callback(cb_superSampleSlides);
+
+		m_depthOfFieldButton = new Fl_Light_Button(10, 140, 60, 25, "DOF");
+		m_depthOfFieldButton->user_data((void*)(this));
+		m_depthOfFieldButton->callback(cb_depthOfFieldButton);
+
+		m_softShadowButton = new Fl_Light_Button(70, 140, 100, 25, "Soft Shadow");
+		m_softShadowButton->user_data((void*)(this));
+		m_softShadowButton->callback(cb_softShadowButton);
+
+		m_glossyReflectionButton = new Fl_Light_Button(170, 140, 70, 25, "Glossy");
+		m_glossyReflectionButton->user_data((void*)(this));
+		m_glossyReflectionButton->callback(cb_glossyReflectionButton);
+
+		m_motionBlurButton = new Fl_Light_Button(240, 140, 70, 25, "Motion");
+		m_motionBlurButton->user_data((void*)(this));
+		m_motionBlurButton->callback(cb_motionBlurButton);
+
+		m_focalLengthSlider = new Fl_Value_Slider(10, 170, 180, 20, "Focal Length");
+		m_focalLengthSlider->user_data((void*)(this));	// record self to be used by static callback functions
+		m_focalLengthSlider->type(FL_HOR_NICE_SLIDER);
+		m_focalLengthSlider->labelfont(FL_COURIER);
+		m_focalLengthSlider->labelsize(12);
+		m_focalLengthSlider->minimum(1.0);
+		m_focalLengthSlider->maximum(5.0);
+		m_focalLengthSlider->step(0.01);
+		m_focalLengthSlider->value(2.0);
+		m_focalLengthSlider->align(FL_ALIGN_RIGHT);
+		m_focalLengthSlider->callback(cb_focalLengthSlides);
+
+		m_apertureSlider = new Fl_Value_Slider(10, 195, 180, 20, "Aperture Size");
+		m_apertureSlider->user_data((void*)(this));	// record self to be used by static callback functions
+		m_apertureSlider->type(FL_HOR_NICE_SLIDER);
+		m_apertureSlider->labelfont(FL_COURIER);
+		m_apertureSlider->labelsize(12);
+		m_apertureSlider->minimum(1);
+		m_apertureSlider->maximum(5);
+		m_apertureSlider->step(1);
+		m_apertureSlider->value(1);
+		m_apertureSlider->align(FL_ALIGN_RIGHT);
+		m_apertureSlider->callback(cb_apertureSlides);
 
 
 		m_mainWindow->callback(cb_exit2);

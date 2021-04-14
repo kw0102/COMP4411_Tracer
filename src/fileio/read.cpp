@@ -21,6 +21,7 @@
 #include "../SceneObjects/Square.h"
 #include "../scene/light.h"
 #include "../SceneObjects/BooleanNode.h"
+#include "../sceneObjects/Metaball.h"
 
 typedef map<string,Material*> mmap;
 
@@ -351,6 +352,8 @@ static SceneObject* processGeometry( string name, Obj *child, Scene *scene,
 			obj = new Cone( scene, mat, height, bottom_radius, top_radius, capped );
 		} else if( name == "square" ) {
 			obj = new Square( scene, mat );
+		} else if (name == "metaball") {
+			obj = new Metaball(scene, mat);
 		}
 
         obj->setTransform(transform);
@@ -604,7 +607,8 @@ static void processObject( Obj *obj, Scene *scene, mmap& materials )
                 name == "polymesh" || // polymesh is for backwards compatibility.
 				name == "union" ||
 				name == "intersection" ||
-				name == "subtract" ) {
+				name == "subtract" ||
+				name == "metaball" ) {
 		processGeometry( name, child, scene, materials, &scene->transformRoot);
 		//scene->add( geo );
 	} else if( name == "material" ) {

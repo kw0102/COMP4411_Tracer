@@ -22,11 +22,11 @@
 - [ ] Solid textures / Procedural texture mapping
 - [ ] New types of geometry
 - [ ] Height fields
-- [ ] Effects
-- [ ] Higher-levl geometry
+- [x] Effects (DOF, Soft Shadow, Glossy, Motion Blur)
+- [x] Higher-level geometry (metaball)
 - [ ] Optimization
 - [ ] Realistic shading model
-- [ ] CSG
+- [x] CSG
 - [ ] Particle systems
 - [ ] Caustics
 

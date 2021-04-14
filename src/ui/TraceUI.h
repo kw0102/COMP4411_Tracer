@@ -38,6 +38,16 @@ public:
 	Fl_Light_Button*	m_jitterButton;
 	Fl_Slider*			m_superSampleSlider;
 
+	Fl_Light_Button*	m_depthOfFieldButton;
+	Fl_Light_Button*	m_softShadowButton;
+	Fl_Light_Button*	m_glossyReflectionButton;
+	Fl_Light_Button*	m_motionBlurButton;
+
+	Fl_Slider*			m_focalLengthSlider;
+	Fl_Slider*			m_apertureSlider;
+
+
+
 	TraceGLWindow*		m_traceGlWindow;
 
 	// member functions
@@ -76,6 +86,18 @@ private:
 	static void cb_adaptiveSampleButton(Fl_Widget* o, void* v);
 	static void cb_jitterButton(Fl_Widget* o, void* v);
 	static void cb_superSampleSlides(Fl_Widget* o, void* v);
+
+	static void cb_depthOfFieldButton(Fl_Widget* o, void* v);
+	static void cb_softShadowButton(Fl_Widget* o, void* v);
+	static void cb_glossyReflectionButton(Fl_Widget* o, void* v);
+	static void cb_motionBlurButton(Fl_Widget* o, void* v);
+
+	static void cb_focalLengthSlides(Fl_Widget* o, void* v);
+	static void cb_apertureSlides(Fl_Widget* o, void* v);
+
+
+
+
 };
 
 #endif

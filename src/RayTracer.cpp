@@ -23,7 +23,50 @@ vec3f RayTracer::trace( Scene *scene, double x, double y )
 	Material air;
 	air.index = 1.0;
 	mats.push(air);
-	return traceRay( scene, r, vec3f(1.0,1.0,1.0), 0, mats).clamp();
+	vec3f color = traceRay(scene, r, vec3f(1.0, 1.0, 1.0), 0, mats).clamp();
+
+	if (depthOfField)
+	{
+		vec3f V = r.getDirection();
+		vec3f up(0, 0, 1);
+		vec3f u = (V.cross(up));
+		vec3f v = (u.cross(V));
+		u = (V.cross(v)).normalize();
+		double size = 0.025 * this->aperture;
+
+		double f = this->focalLength;
+		vec3f focalPoint = r.getPosition() + f * V;
+
+		for (int i = 1; i < 25; i++)
+		{
+			double dx = (double)rand() / RAND_MAX * 2.0 * size - size;
+			double dy = (double)rand() / RAND_MAX * 2.0 * size - size;
+			vec3f dir = V + dx * u + dy * v;
+			vec3f P0 = focalPoint - f / (dir.dot(V)) * dir;
+			ray r1(P0, dir.normalize());
+			color += traceRay(scene, r1, vec3f(1.0, 1.0, 1.0), max(0, maxDepth), mats).clamp();
+		}
+		color /= 25.0;
+	}
+
+	if (motionBlur)
+	{
+		vec3f V = r.getDirection();
+		vec3f up(0, 0, 1);
+		vec3f u = (V.cross(up));
+		vec3f v = (u.cross(V));
+		u = (V.cross(v)).normalize();
+		vec3f dir = V;
+		for (int i = 1; i < 16; i++)
+		{
+			dir += 0.002 * v;
+			ray r1(r.getPosition(), dir.normalize());
+			color += traceRay(scene, r1, vec3f(1.0, 1.0, 1.0), 0, mats).clamp();
+		}
+		color /= 16.0;
+	}
+
+	return color;
 }
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
@@ -60,6 +103,26 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		R = R.normalize();
 		ray reflectRay(P, R);
 		vec3f reflectColor = traceRay(scene, reflectRay, thresh, depth + 1, materials);
+
+		if (glossyReflection)
+		{
+			vec3f up(0, 0, 1);
+			vec3f u = (R.cross(up));
+			vec3f v = (u.cross(R));
+			u = (R.cross(v)).normalize();
+			double size = 0.02;
+			int rayDepth = max(depth + 1, maxDepth);
+			for (int j = 1; j < 25; j++)
+			{
+				double dx = (double)rand() / RAND_MAX * 2.0 * size - size;
+				double dy = (double)rand() / RAND_MAX * 2.0 * size - size;
+				vec3f dir = R + dx * u + dy * v;
+				ray r1(P, dir.normalize());
+				reflectColor += traceRay(scene, r1, thresh, rayDepth, materials);
+			}
+			reflectColor /= 16.0;
+		}
+
 		reflectColor = prod(m.kr, reflectColor);
 
 		// Refraction
@@ -191,6 +254,8 @@ void RayTracer::traceSetup( int w, int h )
 		buffer = new unsigned char[ bufferSize ];
 	}
 	memset( buffer, 0, w*h*3 );
+
+	scene->softShadow = softShadow;
 }
 
 void RayTracer::traceLines( int start, int stop )

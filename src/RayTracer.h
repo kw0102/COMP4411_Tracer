@@ -37,6 +37,14 @@ public:
 	int numSuperSample = 1;
 	bool useAdaptiveSampling = false;
 
+	// Effects
+	bool depthOfField = false;
+	double focalLength = 2.0f;
+	double aperture = 1.0f;
+	bool motionBlur = false;
+	bool softShadow = false;
+	bool glossyReflection = false;
+
 private:
 	unsigned char *buffer;
 	int buffer_width, buffer_height;

@@ -274,7 +274,7 @@ public:
 
 	vec3f ambientLight;
 
-	
+	bool softShadow = false;
 
 private:
     list<Geometry*> objects;
