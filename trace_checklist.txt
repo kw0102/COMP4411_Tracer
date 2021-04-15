@@ -1,0 +1,30 @@
+Trace Bells and Whistles Checklist for Grading
+(submit ONLY if you have implemented any B&Ws in the following)
+
+HKUST login(s): khwanad, yshiau
+
+Delete yes/no when appropriate
+
+W adaptive termination				yes
+W antialiasing by supersampling			yes
++W jittering					yes
+B spot lights					yes
+B background image				yes
+B accelerate shadow atteuation			no
+B overlapping tranparent objects		yes
+BW texture mapping (diffuse and transparent)	yes
+BW antialiasing by adaptive supersampling	yes
+BW Warn model					yes
+2B bump mapping					yes
+2B solid/procedural texture			no
+2B new geometry (torus)			        yes
+2B height fields				yes
+2B first 					yes
+1W next for each Dof, soft shadows, 		yes (all 4)
+   motion blur, glossy reflection		yes
+3B high lever geometry (e.g. metaballs)		yes
+3B ray-intersection optimization		no
+4B realistic shading model			no
+4B CSG						yes
+4B particle system				yes
+4B caustics					no
