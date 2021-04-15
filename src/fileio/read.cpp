@@ -20,6 +20,10 @@
 #include "../SceneObjects/Sphere.h"
 #include "../SceneObjects/Square.h"
 #include "../scene/light.h"
+#include "../SceneObjects/BooleanNode.h"
+#include "../sceneObjects/Metaball.h"
+#include "../SceneObjects/Torus.h"
+#include "../SceneObjects/ParticleEmitter.h"
 
 typedef map<string,Material*> mmap;
 
@@ -28,8 +32,8 @@ static Obj *getColorField( Obj *obj );
 static Obj *getField( Obj *obj, const string& name );
 static bool hasField( Obj *obj, const string& name );
 static vec3f tupleToVec( Obj *obj );
-static void processGeometry( string name, Obj *child, Scene *scene,
-	const mmap& materials, TransformNode *transform );
+static SceneObject* processGeometry( string name, Obj *child, Scene *scene,
+	const mmap& materials, TransformNode *transform, bool returnValue);
 static void processTrimesh( string name, Obj *child, Scene *scene,
                                      const mmap& materials, TransformNode *transform );
 static void processCamera( Obj *child, Scene *scene );
@@ -162,8 +166,8 @@ static vec3f tupleToVec( Obj *obj )
 	return vec3f( t[0]->getScalar(), t[1]->getScalar(), t[2]->getScalar() );
 }
 
-static void processGeometry( Obj *obj, Scene *scene,
-	const mmap& materials, TransformNode *transform )
+static SceneObject* processGeometry( Obj *obj, Scene *scene,
+	const mmap& materials, TransformNode *transform, bool returnValue = false )
 {
 	string name;
 	Obj *child; 
@@ -182,7 +186,7 @@ static void processGeometry( Obj *obj, Scene *scene,
 		throw ParseError( string( oss.str() ) );
 	}
 
-	processGeometry( name, child, scene, materials, transform );
+	return processGeometry( name, child, scene, materials, transform, returnValue );
 }
 
 // Extract the named scalar field into ret, if it exists.
@@ -220,44 +224,44 @@ static void verifyTuple( const mytuple& tup, size_t size )
 	}
 }
 
-static void processGeometry( string name, Obj *child, Scene *scene,
-	const mmap& materials, TransformNode *transform )
+static SceneObject* processGeometry( string name, Obj *child, Scene *scene,
+	const mmap& materials, TransformNode *transform, bool returnValue = false )
 {
 	if( name == "translate" ) {
 		const mytuple& tup = child->getTuple();
 		verifyTuple( tup, 4 );
-        processGeometry( tup[3],
+        return processGeometry( tup[3],
                          scene,
                          materials,
                          transform->createChild(mat4f::translate( vec3f(tup[0]->getScalar(), 
                                                                         tup[1]->getScalar(), 
-                                                                        tup[2]->getScalar() ) ) ) );
+                                                                        tup[2]->getScalar() ) ) ), returnValue);
 	} else if( name == "rotate" ) {
 		const mytuple& tup = child->getTuple();
 		verifyTuple( tup, 5 );
-		processGeometry( tup[4],
+		return processGeometry( tup[4],
                          scene,
                          materials,
                          transform->createChild(mat4f::rotate( vec3f(tup[0]->getScalar(),
                                                                      tup[1]->getScalar(),
                                                                      tup[2]->getScalar() ),
-                                                               tup[3]->getScalar() ) ) );
+                                                               tup[3]->getScalar() ) ), returnValue);
 	} else if( name == "scale" ) {
 		const mytuple& tup = child->getTuple();
 		if( tup.size() == 2 ) {
 			double sc = tup[0]->getScalar();
-			processGeometry( tup[1],
+			return processGeometry( tup[1],
                              scene,
                              materials,
-                             transform->createChild(mat4f::scale( vec3f( sc, sc, sc ) ) ) );
+                             transform->createChild(mat4f::scale( vec3f( sc, sc, sc ) ) ), returnValue);
 		} else {
 			verifyTuple( tup, 4 );
-			processGeometry( tup[3],
+			return processGeometry( tup[3],
                              scene,
                              materials,
                              transform->createChild(mat4f::scale( vec3f(tup[0]->getScalar(),
                                                                         tup[1]->getScalar(),
-                                                                        tup[2]->getScalar() ) ) ) );
+                                                                        tup[2]->getScalar() ) ) ), returnValue);
 		}
 	} else if( name == "transform" ) {
 		const mytuple& tup = child->getTuple();
@@ -272,7 +276,7 @@ static void processGeometry( string name, Obj *child, Scene *scene,
 		verifyTuple( l3, 4 );
 		verifyTuple( l4, 4 );
 
-		processGeometry( tup[4],
+		return processGeometry( tup[4],
 			             scene,
                          materials,
                          transform->createChild(mat4f(vec4f( l1[0]->getScalar(),
@@ -290,9 +294,35 @@ static void processGeometry( string name, Obj *child, Scene *scene,
                                                       vec4f( l4[0]->getScalar(),
                                                              l4[1]->getScalar(),
                                                              l4[2]->getScalar(),
-                                                             l4[3]->getScalar() ) ) ) );
-	} else if( name == "trimesh" || name == "polymesh" ) { // 'polymesh' is for backwards compatibility
-        processTrimesh( name, child, scene, materials, transform);
+                                                             l4[3]->getScalar() ) ) ),
+						  returnValue);
+	} else if (name == "trimesh" || name == "polymesh") { // 'polymesh' is for backwards compatibility
+		processTrimesh(name, child, scene, materials, transform);
+	} else if (name == "union" || name == "intersection" || name == "subtract" ) {
+
+		const mytuple& tup = child->getTuple();
+		verifyTuple(tup, 2);
+
+		SceneObject* a = processGeometry(tup[0], scene, materials, transform, true);
+		SceneObject* b = processGeometry(tup[1], scene, materials, transform, true);
+
+		SceneObject* node;
+		if (name == "union")
+		{
+			node = new UnionNode(scene, a, b);
+		}
+		if (name == "intersection")
+		{
+			node = new IntersectionNode(scene, a, b);
+		}
+		if (name == "subtract")
+		{
+			node = new SubtractNode(scene, a, b);
+		}
+
+		node->setTransform(transform);
+		scene->add(node);
+
     } else {
 		SceneObject *obj = NULL;
        	Material *mat;
@@ -307,7 +337,9 @@ static void processGeometry( string name, Obj *child, Scene *scene,
 		} else if( name == "box" ) {
 			obj = new Box( scene, mat );
 		} else if( name == "cylinder" ) {
-			obj = new Cylinder( scene, mat );
+			bool capped = true;
+			maybeExtractField(child, "capped", capped);
+			obj = new Cylinder( scene, mat, capped );
 		} else if( name == "cone" ) {
 			double height = 1.0;
 			double bottom_radius = 1.0;
@@ -322,10 +354,52 @@ static void processGeometry( string name, Obj *child, Scene *scene,
 			obj = new Cone( scene, mat, height, bottom_radius, top_radius, capped );
 		} else if( name == "square" ) {
 			obj = new Square( scene, mat );
+		} else if (name == "metaball") {
+			obj = new Metaball(scene, mat);
+		} else if (name == "torus") {
+			double r1 = 1.0;
+			double r2 = 0.2;
+			maybeExtractField(child, "major_radius", r1);
+			maybeExtractField(child, "minor_radius", r2);
+			obj = new Torus(scene, mat, r1, r2);
+		}
+		else if (name == "particle_emitter")
+		{
+			double numEmit, maxNumParticles;
+			double minLife, maxLife, minSpeed, maxSpeed;
+			vec3f startColorMin, startColorMax, endColorMin, endColorMax;
+			vec3f force;
+
+			maybeExtractField(child, "numEmit", numEmit);
+			maybeExtractField(child, "maxNumParticles", maxNumParticles);
+			maybeExtractField(child, "minLife", minLife);
+			maybeExtractField(child, "maxLife", maxLife);
+			maybeExtractField(child, "minSpeed", minSpeed);
+			maybeExtractField(child, "maxSpeed", maxSpeed);
+
+			startColorMin = tupleToVec(getField(child, "startColorMin"));
+			startColorMax = tupleToVec(getField(child, "startColorMax"));
+			endColorMin = tupleToVec(getField(child, "endColorMin"));
+			endColorMax = tupleToVec(getField(child, "endColorMax"));
+			force = tupleToVec(getField(child, "force"));
+
+			ParticleEmitter* e = new ParticleEmitter(scene, mat,
+				numEmit, maxNumParticles,
+				minLife, maxLife,
+				minSpeed, maxSpeed,
+				startColorMin, startColorMax,
+				endColorMin, endColorMax,
+				force);
+
+			e->init();
+			obj = e;
 		}
 
         obj->setTransform(transform);
+		if (returnValue)
+			return obj; 
 		scene->add(obj);
+		return NULL;
 	}
 }
 
@@ -588,7 +662,13 @@ static void processObject( Obj *obj, Scene *scene, mmap& materials )
 				name == "scale" ||
 				name == "transform" ||
                 name == "trimesh" ||
-                name == "polymesh") { // polymesh is for backwards compatibility.
+                name == "polymesh" || // polymesh is for backwards compatibility.
+				name == "union" ||
+				name == "intersection" ||
+				name == "subtract" ||
+				name == "metaball" ||
+				name == "torus" ||
+				name == "particle_emitter") {
 		processGeometry( name, child, scene, materials, &scene->transformRoot);
 		//scene->add( geo );
 	} else if( name == "material" ) {

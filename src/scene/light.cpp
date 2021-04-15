@@ -24,6 +24,33 @@ vec3f DirectionalLight::shadowAttenuation( const vec3f& P ) const
 		ret = prod(color, i.getMaterial().kt);
 	}
 
+	if (pScene->softShadow)
+	{
+		vec3f V = d;
+		vec3f up(0, 0, 1);
+		vec3f u = (V.cross(up));
+		vec3f v = (u.cross(V));
+		u = (V.cross(v)).normalize();
+		double size = 0.05;
+		for (int i = 1; i < 25; i++)
+		{
+			double dx = (double)rand() / RAND_MAX * 2.0 * size - size;
+			double dy = (double)rand() / RAND_MAX * 2.0 * size - size;
+			vec3f dir = V + dx * u + dy * v;
+			ray r1(P, dir.normalize());
+			isect i1;
+			if (pScene->intersect(r1, i1))
+			{
+				ret += prod(color, i1.getMaterial().kt);
+			}
+			else
+			{
+				ret += color;
+			}
+		}
+		ret /= 25.0;
+	}
+
     return ret;
 }
 
@@ -83,6 +110,33 @@ vec3f PointLight::shadowAttenuation(const vec3f& P) const
 		ret = prod(color, i.getMaterial().kt);
 	}
 
+	if (pScene->softShadow)
+	{
+		vec3f V = d;
+		vec3f up(0, 0, 1);
+		vec3f u = (V.cross(up));
+		vec3f v = (u.cross(V));
+		u = (V.cross(v)).normalize();
+		double size = 0.05;
+		for (int i = 1; i < 25; i++)
+		{
+			double dx = (double)rand() / RAND_MAX * 2.0 * size - size;
+			double dy = (double)rand() / RAND_MAX * 2.0 * size - size;
+			vec3f dir = V + dx * u + dy * v;
+			ray r1(P, dir.normalize());
+			isect i1;
+			if (pScene->intersect(r1, i1))
+			{
+				ret += prod(color, i1.getMaterial().kt);
+			}
+			else
+			{
+				ret += color;
+			}
+		}
+		ret /= 25.0;
+	}
+
     return ret;
 }
 
@@ -129,6 +183,33 @@ vec3f SpotLight::shadowAttenuation(const vec3f& P) const
 	if (pScene->intersect(r, i))
 	{
 		ret = prod(color, i.getMaterial().kt);
+	}
+
+	if (pScene->softShadow)
+	{
+		vec3f V = d;
+		vec3f up(0, 0, 1);
+		vec3f u = (V.cross(up));
+		vec3f v = (u.cross(V));
+		u = (V.cross(v)).normalize();
+		double size = 0.05;
+		for (int i = 1; i < 25; i++)
+		{
+			double dx = (double)rand() / RAND_MAX * 2.0 * size - size;
+			double dy = (double)rand() / RAND_MAX * 2.0 * size - size;
+			vec3f dir = V + dx * u + dy * v;
+			ray r1(P, dir.normalize());
+			isect i1;
+			if (pScene->intersect(r1, i1))
+			{
+				ret += prod(color, i1.getMaterial().kt);
+			}
+			else
+			{
+				ret += color;
+			}
+		}
+		ret /= 25.0;
 	}
 
 	return ret;

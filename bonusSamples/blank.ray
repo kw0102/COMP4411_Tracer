@@ -1,0 +1,23 @@
+SBT-raytracer 1.0
+
+camera
+{
+	position = (15, 0, 5);
+	viewdir = (-1, 0, -.3);
+	updir = (0, 0, 1);
+}
+
+ambient_light
+{
+	color = (0.2, 0.2, 0.2);
+}
+
+point_light
+{
+	position = (2, 2, 5);
+	colour = (1.0, 1.0, 1.0);
+	constant_attenuation_coeff= 0.25;
+	linear_attenuation_coeff = 0.003372407;
+	quadratic_attenuation_coeff = 0.000045492;
+}
+

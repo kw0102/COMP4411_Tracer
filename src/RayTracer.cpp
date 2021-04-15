@@ -10,6 +10,8 @@
 #include "fileio/parse.h"
 #include "ui/TraceUI.h"
 
+#include "sceneObjects/trimesh.h"
+
 #include <random>
 
 using namespace std;
@@ -28,8 +30,52 @@ vec3f RayTracer::trace( Scene *scene, double x, double y )
 	Material air;
 	air.index = 1.0;
 	mats.push(air);
-	vec3f tresh(scene->getAdaptiveTermination(), scene->getAdaptiveTermination(), scene->getAdaptiveTermination());
-	return traceRay( scene, r, tresh, 0, mats).clamp();
+
+  vec3f tresh(scene->getAdaptiveTermination(), scene->getAdaptiveTermination(), scene->getAdaptiveTermination());
+	vec3f color = traceRay(scene, r, tresh, 0, mats).clamp();
+
+	if (depthOfField)
+	{
+		vec3f V = r.getDirection();
+		vec3f up(0, 0, 1);
+		vec3f u = (V.cross(up));
+		vec3f v = (u.cross(V));
+		u = (V.cross(v)).normalize();
+		double size = 0.025 * this->aperture;
+
+		double f = this->focalLength;
+		vec3f focalPoint = r.getPosition() + f * V;
+
+		for (int i = 1; i < 25; i++)
+		{
+			double dx = (double)rand() / RAND_MAX * 2.0 * size - size;
+			double dy = (double)rand() / RAND_MAX * 2.0 * size - size;
+			vec3f dir = V + dx * u + dy * v;
+			vec3f P0 = focalPoint - f / (dir.dot(V)) * dir;
+			ray r1(P0, dir.normalize());
+			color += traceRay(scene, r1, tresh, max(0, maxDepth), mats).clamp();
+		}
+		color /= 25.0;
+	}
+
+	if (motionBlur)
+	{
+		vec3f V = r.getDirection();
+		vec3f up(0, 0, 1);
+		vec3f u = (V.cross(up));
+		vec3f v = (u.cross(V));
+		u = (V.cross(v)).normalize();
+		vec3f dir = V;
+		for (int i = 1; i < 16; i++)
+		{
+			dir += 0.002 * v;
+			ray r1(r.getPosition(), dir.normalize());
+			color += traceRay(scene, r1, tresh, 0, mats).clamp();
+		}
+		color /= 16.0;
+	}
+
+	return color;
 }
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
@@ -82,6 +128,26 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		R = R.normalize();
 		ray reflectRay(P, R);
 		vec3f reflectColor = traceRay(scene, reflectRay, thresh, depth + 1, materials);
+
+		if (glossyReflection)
+		{
+			vec3f up(0, 0, 1);
+			vec3f u = (R.cross(up));
+			vec3f v = (u.cross(R));
+			u = (R.cross(v)).normalize();
+			double size = 0.02;
+			int rayDepth = max(depth + 1, maxDepth);
+			for (int j = 1; j < 25; j++)
+			{
+				double dx = (double)rand() / RAND_MAX * 2.0 * size - size;
+				double dy = (double)rand() / RAND_MAX * 2.0 * size - size;
+				vec3f dir = R + dx * u + dy * v;
+				ray r1(P, dir.normalize());
+				reflectColor += traceRay(scene, r1, thresh, rayDepth, materials);
+			}
+			reflectColor /= 16.0;
+		}
+
 		reflectColor = prod(m.kr, reflectColor);
 
 		// Refraction
@@ -291,6 +357,8 @@ void RayTracer::traceSetup( int w, int h )
 		buffer = new unsigned char[ bufferSize ];
 	}
 	memset( buffer, 0, w*h*3 );
+
+	scene->softShadow = softShadow;
 }
 
 void RayTracer::traceLines( int start, int stop )
@@ -358,6 +426,54 @@ void RayTracer::tracePixel( int i, int j )
 }
 
 
+void RayTracer::loadHeightField(unsigned char* pHeightMap, unsigned char* pColorMap, const int w, const int h)
+{
+	Material* mat = new Material;
+	mat->kd = mat->ka = vec3f(0.6, 1.0, 0.4);
+	TransformRoot* xform = new TransformRoot;
+	Trimesh* mesh = new Trimesh(scene, mat, xform);
+
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			double x = (double)j / w * 10 - 5;
+			double y = (double)i / h * 10 - 5;
+			double z = (double)pHeightMap[(i * w + j) * 3] / 255.0;
+
+			double r = (double)pColorMap[(i * w + j) * 3] / 255.0;
+			double g = (double)pColorMap[(i * w + j) * 3 + 1] / 255.0;
+			double b = (double)pColorMap[(i * w + j) * 3 + 2] / 255.0;
+
+			mesh->addVertex(vec3f(x, y, z));
+
+			Material* mat = new Material;
+			mat->kd = mat->ka = vec3f(r, g, b);
+			mesh->addMaterial(mat);
+		}
+	}
+
+	for (int i = 0; i < h - 1; i++)
+	{
+		for (int j = 0; j < w - 1; j++)
+		{
+			//mesh->addFace(i * w + j, (i + 1) * w + j, i * w + j + 1);
+			//mesh->addFace((i + 1) * w + j, (i + 1) * w + j + 1, i * w + j + 1);
+			mesh->addFace(i * w + j + 1, (i + 1) * w + j, i * w + j);
+			mesh->addFace(i * w + j + 1, (i + 1) * w + j + 1, (i + 1) * w + j);
+		}
+	}
+
+	mesh->generateNormals();
+
+	for (TrimeshFace* f : mesh->getFaces())
+	{
+		scene->boundedobjects.push_back(f);
+	}
+}
+
+
+
 vec3f RayTracer::adaptiveSampling(const double x, const double y, int depth)
 {
 	//use recursion to keep find smaller pixel area
@@ -400,4 +516,5 @@ vec3f RayTracer::adaptiveSampling(const double x, const double y, int depth)
 	}
 
 	return color / number;
+
 }

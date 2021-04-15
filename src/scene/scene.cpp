@@ -201,6 +201,7 @@ void Scene::initScene()
 
 }
 
+
 void Scene::setAdaptiveTermination(float tresh)
 {
 	this->adaptiveTermination = tresh;
@@ -210,5 +211,4 @@ float Scene::getAdaptiveTermination()
 {
 	return adaptiveTermination;
 }
-
 

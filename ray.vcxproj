@@ -166,12 +166,18 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="src\quartic.cpp" />
     <ClCompile Include="src\RayTracer.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="src\SceneObjects\BooleanNode.cpp" />
+    <ClCompile Include="src\SceneObjects\Metaball.cpp" />
+    <ClCompile Include="src\SceneObjects\ParticleEmitter.cpp" />
+    <ClCompile Include="src\SceneObjects\Torus.cpp" />
+    <ClCompile Include="src\SimplexNoise.cpp" />
     <ClCompile Include="src\ui\TraceGLWindow.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -276,7 +282,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\quartic.h" />
     <ClInclude Include="src\RayTracer.h" />
+    <ClInclude Include="src\SceneObjects\BooleanNode.h" />
+    <ClInclude Include="src\SceneObjects\ParticleEmitter.h" />
+    <ClInclude Include="src\SceneObjects\Torus.h" />
+    <ClInclude Include="src\SceneObjects\Metaball.h" />
+    <ClInclude Include="src\SimplexNoise.h" />
     <ClInclude Include="src\ui\TraceGLWindow.h" />
     <ClInclude Include="src\ui\TraceUI.h" />
     <ClInclude Include="src\fileio\bitmap.h" />

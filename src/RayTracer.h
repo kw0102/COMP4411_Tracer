@@ -24,7 +24,8 @@ public:
 	void traceLines( int start = 0, int stop = 10000000 );
 	void tracePixel( int i, int j );
 
-	
+
+	void loadHeightField(unsigned char* pHeightMap, unsigned char* pColorMap, const int w, const int h);
 
 	bool loadScene( char* fn );
 	bool sceneLoaded();
@@ -53,6 +54,14 @@ public:
 	int numSuperSample = 1;
 	bool useAdaptiveSampling = false;
 	vec3f adaptiveSampling(const double x, const double y, int depth);
+
+	// Effects
+	bool depthOfField = false;
+	double focalLength = 2.0f;
+	double aperture = 1.0f;
+	bool motionBlur = false;
+	bool softShadow = false;
+	bool glossyReflection = false;
 
 private:
 	//buffer
