@@ -507,23 +507,23 @@ TraceUI::TraceUI() {
 		m_superSampleSlider->align(FL_ALIGN_RIGHT);
 		m_superSampleSlider->callback(cb_superSampleSlides);
 
-		m_depthOfFieldButton = new Fl_Light_Button(10, 140, 60, 25, "DOF");
+		m_depthOfFieldButton = new Fl_Light_Button(10, 180, 60, 25, "DOF");
 		m_depthOfFieldButton->user_data((void*)(this));
 		m_depthOfFieldButton->callback(cb_depthOfFieldButton);
 
-		m_softShadowButton = new Fl_Light_Button(70, 140, 100, 25, "Soft Shadow");
+		m_softShadowButton = new Fl_Light_Button(70, 180, 100, 25, "Soft Shadow");
 		m_softShadowButton->user_data((void*)(this));
 		m_softShadowButton->callback(cb_softShadowButton);
 
-		m_glossyReflectionButton = new Fl_Light_Button(170, 140, 70, 25, "Glossy");
+		m_glossyReflectionButton = new Fl_Light_Button(170, 180, 70, 25, "Glossy");
 		m_glossyReflectionButton->user_data((void*)(this));
 		m_glossyReflectionButton->callback(cb_glossyReflectionButton);
 
-		m_motionBlurButton = new Fl_Light_Button(240, 140, 70, 25, "Motion");
+		m_motionBlurButton = new Fl_Light_Button(240, 180, 70, 25, "Motion");
 		m_motionBlurButton->user_data((void*)(this));
 		m_motionBlurButton->callback(cb_motionBlurButton);
 
-		m_focalLengthSlider = new Fl_Value_Slider(10, 170, 180, 20, "Focal Length");
+		m_focalLengthSlider = new Fl_Value_Slider(10, 210, 180, 20, "Focal Length");
 		m_focalLengthSlider->user_data((void*)(this));	// record self to be used by static callback functions
 		m_focalLengthSlider->type(FL_HOR_NICE_SLIDER);
 		m_focalLengthSlider->labelfont(FL_COURIER);
@@ -535,7 +535,7 @@ TraceUI::TraceUI() {
 		m_focalLengthSlider->align(FL_ALIGN_RIGHT);
 		m_focalLengthSlider->callback(cb_focalLengthSlides);
 
-		m_apertureSlider = new Fl_Value_Slider(10, 195, 180, 20, "Aperture Size");
+		m_apertureSlider = new Fl_Value_Slider(10, 230, 180, 20, "Aperture Size");
 		m_apertureSlider->user_data((void*)(this));	// record self to be used by static callback functions
 		m_apertureSlider->type(FL_HOR_NICE_SLIDER);
 		m_apertureSlider->labelfont(FL_COURIER);
