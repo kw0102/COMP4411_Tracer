@@ -633,6 +633,25 @@ static void processObject( Obj *obj, Scene *scene, mmap& materials )
 			tupleToVec(getField(child, "direction")).normalize(),
 			getField(child, "angle")->getScalar()));
 	}
+	else if (name == "warn_model_light") {
+
+		if (child == NULL) {
+			throw ParseError("No info for Warn Model Light");
+		}
+		double a = 0, b = 0, c = 0;
+		maybeExtractField(child, "constant_attenuation_coeff", a);
+		maybeExtractField(child, "linear_attenuation_coeff", a);
+		maybeExtractField(child, "quadric_attenuation_coeff", a);
+		 WarnModelLight* wml = new WarnModelLight(scene,
+			tupleToVec(getField(child, "position")),
+			tupleToVec(getColorField(child)),
+			 a,b,c,
+			tupleToVec(getField(child, "direction")).normalize(),
+			getField(child,"size")->getScalar());
+		 wml->setType((WarnModelLight::Type)(int)getField(child, "type")->getScalar());
+		 scene->add(wml);
+		 //printf("read warnlight");
+	}
 	else if (name == "sphere" ||
 				name == "box" ||
 				name == "cylinder" ||

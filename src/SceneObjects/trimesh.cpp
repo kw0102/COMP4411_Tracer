@@ -54,6 +54,13 @@ Trimesh::doubleCheck()
     return 0;
 }
 
+bool Trimesh::getLocalUV(const ray& r, const isect& i, double& u, double& v) const
+{
+    return false;
+}
+
+
+
 // Intersect ray r with the triangle abc.  If it hits returns true,
 // and put the parameter in t and the barycentric coordinates of the
 // intersection in bary.
@@ -175,4 +182,7 @@ Trimesh::generateNormals()
 
     delete [] numFaces;
 }
-
+bool TrimeshFace::getLocalUV(const ray& r, const isect& i, double& u, double& v) const
+{
+    return false;
+}
