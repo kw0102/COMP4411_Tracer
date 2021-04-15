@@ -21,7 +21,7 @@
 - [x] Bump mapping
 - [ ] Solid textures / Procedural texture mapping
 - [x] New types of geometry (torus)
-- [x] Height fields
+- [x] Height fields (Please load blank.ray first, then load the height map hf_64_.bmp)
 - [x] Effects (DOF, Soft Shadow, Glossy, Motion Blur)
 - [x] Higher-level geometry (metaball)
 - [ ] Optimization
