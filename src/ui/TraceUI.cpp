@@ -12,7 +12,9 @@
 #include "TraceUI.h"
 #include "../RayTracer.h"
 
+using namespace std;
 static bool done;
+
 
 //------------------------------------- Help Functions --------------------------------------------
 TraceUI* TraceUI::whoami(Fl_Menu_* o)	// from menu item back to UI itself
@@ -32,7 +34,8 @@ void TraceUI::cb_load_scene(Fl_Menu_* o, void* v)
 
 		if (pUI->raytracer->loadScene(newfile)) {
 			sprintf(buf, "Ray <%s>", newfile);
-			done=true;	// terminate the previous rendering
+			done=true;	
+			
 		} else{
 			sprintf(buf, "Ray <Not Loaded>");
 		}
@@ -78,6 +81,41 @@ void TraceUI::cb_about(Fl_Menu_* o, void* v)
 	fl_message("RayTracer Project, FLTK version for CS 341 Spring 2002. Latest modifications by Jeff Maurer, jmaurer@cs.washington.edu");
 }
 
+void TraceUI::cb_load_background(Fl_Menu_* o, void* v) {
+	
+	TraceUI* pUI = whoami(o);
+
+	char* newfile = fl_file_chooser("Load Background?", "*.bmp", NULL);
+
+	if (newfile != NULL) 
+	{
+		pUI->raytracer->loadBackground(newfile);
+		
+	}
+	
+}
+
+void TraceUI::cb_load_textureMap(Fl_Menu_* o, void* v) {
+
+	TraceUI* pUI = whoami(o);
+
+	char* newfile = fl_file_chooser("Load Texture?", "*.bmp", NULL);
+
+	if (newfile != NULL)
+	{
+		pUI->raytracer->loadTexture(newfile);
+	}
+}
+
+void TraceUI::cb_load_bumpMap(Fl_Menu_* o, void* v)
+{
+	TraceUI* pUI = whoami(o);
+	char* newfile = fl_file_chooser("Load Bump?", "*.bmp", NULL);
+	if (newfile != NULL) {
+		pUI->raytracer->loadBumpping(newfile);
+	}
+}
+
 void TraceUI::cb_sizeSlides(Fl_Widget* o, void* v)
 {
 	TraceUI* pUI=(TraceUI*)(o->user_data());
@@ -91,6 +129,15 @@ void TraceUI::cb_depthSlides(Fl_Widget* o, void* v)
 {
 	((TraceUI*)(o->user_data()))->m_nDepth=int( ((Fl_Slider *)o)->value() ) ;
 	((TraceUI*)(o->user_data()))->raytracer->maxDepth = int(((Fl_Slider*)o)->value());
+}
+
+void TraceUI::cb_adaptiveTerminationSlides(Fl_Widget* o, void* v)
+{
+	TraceUI* pUI = (TraceUI*)(o->user_data());
+	pUI->adaptiveTermination = double(((Fl_Slider*)o)->value());
+	cout << pUI->adaptiveTermination << endl;
+
+	
 }
 
 void TraceUI::cb_render(Fl_Widget* o, void* v)
@@ -175,6 +222,33 @@ void TraceUI::cb_stop(Fl_Widget* o, void* v)
 	done=true;
 }
 
+void TraceUI::cb_backgroundButton(Fl_Widget* o, void* v)
+{
+	TraceUI* pUI = ((TraceUI*)(o->user_data()));
+	RayTracer* rt = pUI->raytracer;
+	rt->useBackground = !rt->useBackground;
+	
+}
+
+void TraceUI::cb_textureMappingButton(Fl_Widget* o, void* v)
+{
+	TraceUI* pUI = ((TraceUI*)(o->user_data()));
+	RayTracer* rt = pUI->raytracer;
+	rt->useTexture = !rt->useTexture;
+	if (rt->useTexture)
+		printf("true");
+	else
+		printf("false");
+}
+
+void TraceUI::cb_bumppingButton(Fl_Widget* o, void* v)
+{
+	TraceUI* pUI = ((TraceUI*)(o->user_data()));
+	RayTracer* rt = pUI->raytracer;
+	rt->useBump = !rt->useBump;
+
+}
+
 void TraceUI::cb_superSampleButton(Fl_Widget* o, void* v)
 {
 	TraceUI* pUI = ((TraceUI*)(o->user_data()));
@@ -242,11 +316,16 @@ int TraceUI::getDepth()
 	return m_nDepth;
 }
 
+
+
 // menu definition
 Fl_Menu_Item TraceUI::menuitems[] = {
 	{ "&File",		0, 0, 0, FL_SUBMENU },
 		{ "&Load Scene...",	FL_ALT + 'l', (Fl_Callback *)TraceUI::cb_load_scene },
 		{ "&Save Image...",	FL_ALT + 's', (Fl_Callback *)TraceUI::cb_save_image },
+		{ "&Load Background...", FL_ALT + 'b', (Fl_Callback*)TraceUI::cb_load_background },
+		{ "&Load Texture...", FL_ALT + 't', (Fl_Callback*)TraceUI::cb_load_textureMap },
+		{ "&Load Bump...", FL_ALT + 't', (Fl_Callback*)TraceUI::cb_load_bumpMap },
 		{ "&Exit",			FL_ALT + 'e', (Fl_Callback *)TraceUI::cb_exit },
 		{ 0 },
 
@@ -293,6 +372,22 @@ TraceUI::TraceUI() {
 		m_sizeSlider->align(FL_ALIGN_RIGHT);
 		m_sizeSlider->callback(cb_sizeSlides);
 
+		//install Adaptive Termination Slider 
+		m_adaptiveTerminationSlider = new Fl_Value_Slider(10, 130, 180, 20, "Threashold");
+		m_adaptiveTerminationSlider->user_data((void*)(this));	// record self to be used by static callback functions
+		m_adaptiveTerminationSlider->type(FL_HOR_NICE_SLIDER);
+		m_adaptiveTerminationSlider->labelfont(FL_COURIER);
+		m_adaptiveTerminationSlider->labelsize(12);
+		m_adaptiveTerminationSlider->minimum(0);
+		m_adaptiveTerminationSlider->maximum(1);
+		m_adaptiveTerminationSlider->step(0.01);
+		m_adaptiveTerminationSlider->value(adaptiveTermination);
+		m_adaptiveTerminationSlider->align(FL_ALIGN_RIGHT);
+		m_adaptiveTerminationSlider->callback(cb_adaptiveTerminationSlides);
+
+
+		// button 
+
 		m_renderButton = new Fl_Button(240, 27, 70, 25, "&Render");
 		m_renderButton->user_data((void*)(this));
 		m_renderButton->callback(cb_render);
@@ -313,6 +408,18 @@ TraceUI::TraceUI() {
 		m_jitterButton->user_data((void*)(this));
 		m_jitterButton->callback(cb_jitterButton);
 
+		m_backgroundButton = new Fl_Light_Button(10, 150, 120, 25, "Background");
+		m_backgroundButton->user_data((void*)(this));
+		m_backgroundButton->callback(cb_backgroundButton);
+
+		m_textureMappingButton = new Fl_Light_Button(130, 150, 70, 25, "Texture");
+		m_textureMappingButton->user_data((void*)(this));
+		m_textureMappingButton->callback(cb_textureMappingButton);
+
+		m_textureMappingButton = new Fl_Light_Button(200, 150, 60, 25, "Bump");
+		m_textureMappingButton->user_data((void*)(this));
+		m_textureMappingButton->callback(cb_bumppingButton);
+
 		m_superSampleSlider = new Fl_Value_Slider(10, 110, 180, 20, "Num of sub-pixel");
 		m_superSampleSlider->user_data((void*)(this));	// record self to be used by static callback functions
 		m_superSampleSlider->type(FL_HOR_NICE_SLIDER);
@@ -328,7 +435,7 @@ TraceUI::TraceUI() {
 
 		m_mainWindow->callback(cb_exit2);
 		m_mainWindow->when(FL_HIDE);
-    m_mainWindow->end();
+		m_mainWindow->end();
 
 	// image view
 	m_traceGlWindow = new TraceGLWindow(100, 150, m_nSize, m_nSize, "Rendered Image");

@@ -142,3 +142,33 @@ bool Cone::intersectCaps( const ray& r, isect& i ) const
 
 	return false;
 }
+
+bool Cone::getLocalUV(const ray& r, const isect& i, double& u, double& v) const
+{
+	vec3f pos = transform->globalToLocalCoords(r.getPosition());
+	vec3f dir = transform->globalToLocalCoords(r.getPosition() + r.getDirection()) - pos;
+	double length = dir.length();
+	dir /= length;
+
+	ray localRay(pos, dir);
+	isect icopy = i;
+	if (intersectLocal(localRay, icopy)) {
+		
+		vec3f localIscePoint = localRay.at(icopy.t);
+		
+		v = localIscePoint[2] / height;
+		double temp = abs(b_radius - t_radius);
+		double theta = acosf(localIscePoint[0] /(b_radius+temp * localIscePoint[2] / height));
+		double ut = theta / 2 / 3.141592653;
+
+
+		if (ut> 0) u = ut;
+		else u = 1 - ut;
+
+
+		return true;
+	}
+	else {
+		return false;
+	}
+}

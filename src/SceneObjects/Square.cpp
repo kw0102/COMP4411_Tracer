@@ -37,3 +37,25 @@ bool Square::intersectLocal( const ray& r, isect& i ) const
 
 	return true;
 }
+
+bool Square::getLocalUV(const ray& r, const isect& i, double& u, double& v) const
+{
+	
+	vec3f pos = transform->globalToLocalCoords(r.getPosition());
+	vec3f dir = transform->globalToLocalCoords(r.getPosition() + r.getDirection()) - pos;
+	double length = dir.length();
+	dir /= length;
+
+	ray localRay(pos, dir);
+	isect icopy = i;
+	if (intersectLocal(localRay, icopy)) {
+		vec3f localIscePoint = localRay.at(icopy.t);
+		u = localIscePoint[0] + 0.5;
+		v = localIscePoint[1] + 0.5;
+		return true;
+	}
+	else {
+		return false;
+	}
+	
+}

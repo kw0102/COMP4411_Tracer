@@ -7,11 +7,13 @@
 #ifndef __MATERIAL_H__
 #define __MATERIAL_H__
 
+#include <stack>
 #include "../vecmath/vecmath.h"
 
 class Scene;
 class ray;
 class isect;
+class Geometry;
 
 class Material
 {
@@ -33,10 +35,13 @@ public:
               const vec3f& d, const vec3f& r, const vec3f& t, double sh, double in)
         : ke( e ), ka( a ), ks( s ), kd( d ), kr( r ), kt( t ), shininess( sh ), index( in ), uid(0)
     {
+        
         uid = n++;
     }
-
-	virtual vec3f shade( Scene *scene, const ray& r, const isect& i ) const;
+    
+    virtual vec3f shade(Scene* scene, const ray& r, const isect& i, const unsigned char* texturImg = NULL, const int width = 0, const int height = 0, const unsigned char* bump = NULL) const;
+    
+  
 
     vec3f ke;                    // emissive
     vec3f ka;                    // ambient
@@ -47,8 +52,6 @@ public:
     
     double shininess;
     double index;               // index of refraction
-
-    
                                 // material with zero coeffs for everything
                                 // as opposed to the "default" material which is
                                 // a pleasant blue.

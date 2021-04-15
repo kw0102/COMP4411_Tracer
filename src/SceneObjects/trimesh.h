@@ -28,12 +28,12 @@ public:
     }
 
     ~Trimesh();
-    
+   
     // must add vertices, normals, and materials IN ORDER
     void addVertex( const vec3f & );
     void addMaterial( Material *m );
     void addNormal( const vec3f & );
-
+    virtual bool getLocalUV(const ray& r, const isect& i, double& u, double& v) const;
     bool addFace( int a, int b, int c );
 
     char *doubleCheck();
@@ -63,7 +63,9 @@ public:
     virtual bool intersectLocal( const ray& r, isect& i ) const;
 
     virtual bool hasBoundingBoxCapability() const { return true; }
-      
+
+    virtual bool getLocalUV(const ray& r, const isect& i, double& u, double& v) const;
+
     virtual BoundingBox ComputeLocalBoundingBox()
     {
         BoundingBox localbounds;

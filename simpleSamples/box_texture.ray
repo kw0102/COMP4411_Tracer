@@ -1,0 +1,35 @@
+SBT-raytracer 1.0
+
+
+
+
+camera
+{
+	position = (15, 0, 5);
+	viewdir = (-1, 0, -0.3);
+	updir = (0, 0, 1);
+}
+
+
+ambient_light
+{
+	color = (0.25, 0.25, 0.25);
+}
+
+
+directional_light
+{
+	direction = (-1, 0, -0.2);
+	color = (1, 1, 1);
+}
+
+translate( 0, 0, 0,
+	scale( 15, 15, 1, 
+		square {
+			material = { 
+				diffuse = (1.0,1.0,1.0); 
+				specular = (0.5, 0.5, 0.5);
+				reflective = (1, 1, 1);
+				shininess = 0.2;
+			}
+		} ) )

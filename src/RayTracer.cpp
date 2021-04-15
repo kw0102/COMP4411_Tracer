@@ -8,8 +8,13 @@
 #include "scene/ray.h"
 #include "fileio/read.h"
 #include "fileio/parse.h"
+#include "ui/TraceUI.h"
 
 #include <random>
+
+using namespace std;
+
+extern TraceUI* traceUI;
 
 // Trace a top-level ray through normalized window coordinates (x,y)
 // through the projection plane, and out into the scene.  All we do is
@@ -23,7 +28,8 @@ vec3f RayTracer::trace( Scene *scene, double x, double y )
 	Material air;
 	air.index = 1.0;
 	mats.push(air);
-	return traceRay( scene, r, vec3f(1.0,1.0,1.0), 0, mats).clamp();
+	vec3f tresh(scene->getAdaptiveTermination(), scene->getAdaptiveTermination(), scene->getAdaptiveTermination());
+	return traceRay( scene, r, tresh, 0, mats).clamp();
 }
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
@@ -47,13 +53,29 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		// more steps: add in the contributions from reflected and refracted
 		// rays.
 
+
 		vec3f V = r.getDirection();
 		vec3f N = i.N;
 		vec3f P = r.at(i.t);
-
+		vec3f phong;
 		const Material& m = i.getMaterial();
 
-		vec3f phong = m.shade(scene, r, i);
+		
+		
+		if (useTexture && textureImg && !useBump ) {
+			
+			phong = m.shade(scene, r, i, textureImg, texture_width, texture_height);
+		}
+		else if (useTexture &&textureImg&& useBump ) {
+			
+			phong = m.shade(scene, r, i, textureImg, texture_width, texture_height, bumpping);
+		}
+		else {
+			
+			phong = m.shade(scene, r, i);
+		}
+
+		
 
 		// Reflection
 		vec3f R = V - 2 * V.dot(N) * N;
@@ -83,7 +105,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 			double d = V * N;
 			double cosSq = 1 - eta * eta * (1 - d * d);
 
-			if (cosSq < RAY_EPSILON) 
+			if (cosSq < RAY_EPSILON)
 			{
 				// total internal reflection
 				refractColor = vec3f(0, 0, 0);
@@ -110,10 +132,88 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		// No intersection.  This ray travels to infinity, so we color
 		// it according to the background color, which in this (simple) case
 		// is just black.
-
-		return vec3f( 0.0, 0.0, 0.0 );
+		//
+		//If there is a background, return the background color 
+		if (useBackground )
+		{
+			vec3f x = scene->getCamera()->getu();
+			vec3f y = scene->getCamera()->getv();
+			vec3f z = scene->getCamera()->getLook();
+			double dis_x = r.getDirection() * x;
+			double dis_y = r.getDirection() * y;
+			double dis_z = r.getDirection() * z;
+			return getBackground(dis_x / dis_z + 0.5, dis_y / dis_z + 0.5);
+		}
+		else
+			//return black
+		{
+			return vec3f(0.0, 0.0, 0.0);
+		}
 	}
 }
+void RayTracer::loadBackground(char* img) 
+{
+	unsigned char* data = NULL;
+	data = readBMP(img, background_width, background_height);
+	if (data) {
+		background = data;
+	}
+}
+
+void RayTracer::loadTexture(char* img)
+{
+	unsigned char* data = NULL;
+	data = readBMP(img, texture_width, texture_height);
+	if (data) {
+		textureImg = data;
+	}
+}
+
+void RayTracer::loadBumpping(char* Img)
+{
+	unsigned char* data = NULL;
+	data = readBMP(Img, bump_width, bump_height);
+	if (texture_height != bump_height || texture_width != bump_width) {
+		printf("Error in size!");
+		return;
+	}
+	if (data) {
+		bumpping = new unsigned char[bump_width * bump_height];
+		for (int i = 0; i < bump_width * bump_height * 3; i += 3) {
+			bumpping[i / 3] = (data[i] + data[i + 1] + data[i + 2]) / 3;
+		}
+	}
+}
+
+
+vec3f RayTracer::getBackground(double x, double y) {
+	
+	if (!useBackground) {
+		return vec3f(0, 0,0);
+	}
+	int width = int(x * background_width);
+	int height = int(y * background_height);
+	if (width < 0 || width >= background_width || height < 0 || height >= background_height)
+	{
+		return vec3f(0, 0, 0);
+	}
+	double val1 = background[(height * background_width + width) * 3] / 255.0;
+	double val2 = background[(height * background_width + width) * 3 + 1] / 255.0;
+	double val3 = background[(height * background_width + width) * 3 + 2] / 255.0;
+	return vec3f(val1, val2, val3);
+}
+
+
+
+
+Scene* RayTracer::getScene()
+{
+	return this->scene;
+}
+
+
+
+
 
 RayTracer::RayTracer()
 {
@@ -240,6 +340,9 @@ void RayTracer::tracePixel( int i, int j )
 	}
 	else if (useAdaptiveSampling)
 	{
+	
+
+		col = adaptiveSampling(x, y, 0);
 
 	}
 	else
@@ -252,4 +355,49 @@ void RayTracer::tracePixel( int i, int j )
 	pixel[0] = (int)( 255.0 * col[0]);
 	pixel[1] = (int)( 255.0 * col[1]);
 	pixel[2] = (int)( 255.0 * col[2]);
+}
+
+
+vec3f RayTracer::adaptiveSampling(const double x, const double y, int depth)
+{
+	//use recursion to keep find smaller pixel area
+	//base case: 
+	if (depth >= 3) {
+		return trace(scene, x, y);
+	}
+	double dx0 = x - (1.0 / buffer_width) / 2.f;
+	double dx1 = x + (1.0 / buffer_width) / 2.f;
+	double dy0 = y - (1.0 / buffer_height) / 2.f;
+	double dy1 = y + (1.0 / buffer_height) / 2.f;
+	vec3f c00 = trace(scene, dx0, dy0);
+	vec3f c01 = trace(scene, dx0, dy1);
+	vec3f c10 = trace(scene, dx1, dy0);
+	vec3f c11 = trace(scene, dx1, dy1);
+	vec3f ct = trace(scene, x, y);
+	vec3f color = ct;
+	int number = 1;
+	if ((c00 - ct).length() > 0.1)
+	{
+		color += adaptiveSampling(x - (1.0 / buffer_width) / 4.f, y - (1.0 / buffer_height) / 4.f, depth + 1);
+		number++;
+	}
+	if ((c01 - ct).length() > 0.1)
+	{
+	
+		color += adaptiveSampling(x - (1.0 / buffer_width) / 4.f, y + (1.0 / buffer_height) / 4.f, depth + 1);
+		number++;
+	}
+
+	if ((c10 - ct).length() > 0.1)
+	{
+		color += adaptiveSampling(x + (1.0 / buffer_width) / 4.f,y - (1.0 / buffer_height) / 4.f, depth + 1);
+		number++;
+	}
+	if ((c11 - ct).length() > 0.1)
+	{
+		color + adaptiveSampling(x + (1.0 / buffer_width) / 4.f, y + (1.0 / buffer_height) / 4.f, depth + 1);
+		number++;
+	}
+
+	return color / number;
 }

@@ -24,9 +24,25 @@ public:
 	void traceLines( int start = 0, int stop = 10000000 );
 	void tracePixel( int i, int j );
 
-	bool loadScene( char* fn );
+	
 
+	bool loadScene( char* fn );
 	bool sceneLoaded();
+	Scene* getScene();
+
+	//background
+	void loadBackground(char* img);
+	vec3f getBackground(double x, double y);
+	bool useBackground = false;
+
+
+	//texture 
+	void loadTexture(char* img);
+	bool useTexture= false;
+	
+	//bummping 
+	void loadBumpping(char* Img);
+	bool useBump = false;
 
 	// Recursion depth
 	int maxDepth = 0;
@@ -36,12 +52,25 @@ public:
 	bool useJitter = false;
 	int numSuperSample = 1;
 	bool useAdaptiveSampling = false;
+	vec3f adaptiveSampling(const double x, const double y, int depth);
 
 private:
+	//buffer
 	unsigned char *buffer;
 	int buffer_width, buffer_height;
 	int bufferSize;
+	//background
+	unsigned char* background;
+	int background_height, background_width;
+	//texture
+	unsigned char* textureImg;
+	int texture_height, texture_width;
+	//bumpping 
+	unsigned char* bumpping;
+	int bump_height, bump_width;
+	
 	Scene *scene;
+	
 
 	bool m_bSceneLoaded;
 };
