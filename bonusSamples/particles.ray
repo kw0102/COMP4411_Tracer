@@ -1,0 +1,46 @@
+SBT-raytracer 1.0
+
+camera
+{
+	position = (15, 0, 5);
+	viewdir = (-1, 0, -.3);
+	updir = (0, 0, 1);
+}
+
+ambient_light
+{
+	color = (0.2, 0.2, 0.2)
+}
+
+point_light
+{
+	position = (1, -1, 6);
+	color = (1, 1, 1);
+	constant_attenuation_coeff= 0.25;
+	linear_attenuation_coeff = 0.003372407;
+	quadratic_attenuation_coeff = 0.000045492;
+}
+
+translate(-2,-2,0,
+particle_emitter
+{
+	material = {
+		diffuse=( 0.3,0.3,0.3);
+   	 	ambient=( 0.2,0.2,0.2);
+   	 	specular=( 0,0,0);
+    		emissive=( 0,0,0);
+    		transmissive=( 0,0,0 );
+	};
+	startColorMin = (0.98,0.54,0.0);
+	startColorMax = (1.0,0.5,0.0);
+	endColorMin = (0.1,0.1,0.1);
+	endColorMax = (0.0,0.0,0.52);
+	force = (-0.005,0.005,0); 
+	minLife = 50;
+	maxLife = 90;
+	numEmit = 50; 
+	maxNumParticles = 10000;
+	maxSpeed = 0.05;
+	minSpeed = 0.005; 
+}
+)

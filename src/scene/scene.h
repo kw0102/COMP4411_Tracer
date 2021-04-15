@@ -276,7 +276,7 @@ public:
 
 	bool softShadow = false;
 
-private:
+public:
     list<Geometry*> objects;
 	list<Geometry*> nonboundedobjects;
 	list<Geometry*> boundedobjects;

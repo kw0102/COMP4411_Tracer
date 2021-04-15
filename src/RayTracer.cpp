@@ -9,6 +9,8 @@
 #include "fileio/read.h"
 #include "fileio/parse.h"
 
+#include "sceneObjects/trimesh.h"
+
 #include <random>
 
 // Trace a top-level ray through normalized window coordinates (x,y)
@@ -317,4 +319,52 @@ void RayTracer::tracePixel( int i, int j )
 	pixel[0] = (int)( 255.0 * col[0]);
 	pixel[1] = (int)( 255.0 * col[1]);
 	pixel[2] = (int)( 255.0 * col[2]);
+}
+
+void RayTracer::loadHeightField(unsigned char* pHeightMap, unsigned char* pColorMap, const int w, const int h)
+{
+	Material* mat = new Material;
+	mat->kd = mat->ka = vec3f(0.6, 1.0, 0.4);
+	TransformRoot* xform = new TransformRoot;
+	Trimesh* mesh = new Trimesh(scene, mat, xform);
+
+	for (int i = 0; i < h; i++)
+	{
+		for (int j = 0; j < w; j++)
+		{
+			double x = (double)j / w * 10 - 5;
+			double y = (double)i / h * 10 - 5;
+			double z = (double)pHeightMap[(i * w + j) * 3] / 255.0;
+
+			double r = (double)pColorMap[(i * w + j) * 3] / 255.0;
+			double g = (double)pColorMap[(i * w + j) * 3 + 1] / 255.0;
+			double b = (double)pColorMap[(i * w + j) * 3 + 2] / 255.0;
+
+			mesh->addVertex(vec3f(x, y, z));
+
+			Material* mat = new Material;
+			mat->kd = mat->ka = vec3f(r, g, b);
+			mesh->addMaterial(mat);
+		}
+	}
+
+	for (int i = 0; i < h - 1; i++)
+	{
+		for (int j = 0; j < w - 1; j++)
+		{
+			//mesh->addFace(i * w + j, (i + 1) * w + j, i * w + j + 1);
+			//mesh->addFace((i + 1) * w + j, (i + 1) * w + j + 1, i * w + j + 1);
+			mesh->addFace(i * w + j + 1, (i + 1) * w + j, i * w + j);
+			mesh->addFace(i * w + j + 1, (i + 1) * w + j + 1, (i + 1) * w + j);
+		}
+	}
+
+	mesh->generateNormals();
+
+	for (TrimeshFace* f : mesh->getFaces())
+	{
+		scene->boundedobjects.push_back(f);
+	}
+
+
 }

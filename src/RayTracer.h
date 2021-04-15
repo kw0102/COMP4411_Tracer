@@ -25,6 +25,7 @@ public:
 	void tracePixel( int i, int j );
 
 	bool loadScene( char* fn );
+	void loadHeightField(unsigned char* pHeightMap, unsigned char* pColorMap, const int w, const int h);
 
 	bool sceneLoaded();
 

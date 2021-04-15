@@ -74,6 +74,8 @@ private:
 	static void cb_exit(Fl_Menu_* o, void* v);
 	static void cb_about(Fl_Menu_* o, void* v);
 
+	static void cb_loadHeightField(Fl_Menu_* o, void* v);
+
 	static void cb_exit2(Fl_Widget* o, void* v);
 
 	static void cb_sizeSlides(Fl_Widget* o, void* v);

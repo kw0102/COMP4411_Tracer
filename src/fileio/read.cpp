@@ -22,6 +22,8 @@
 #include "../scene/light.h"
 #include "../SceneObjects/BooleanNode.h"
 #include "../sceneObjects/Metaball.h"
+#include "../SceneObjects/Torus.h"
+#include "../SceneObjects/ParticleEmitter.h"
 
 typedef map<string,Material*> mmap;
 
@@ -354,6 +356,43 @@ static SceneObject* processGeometry( string name, Obj *child, Scene *scene,
 			obj = new Square( scene, mat );
 		} else if (name == "metaball") {
 			obj = new Metaball(scene, mat);
+		} else if (name == "torus") {
+			double r1 = 1.0;
+			double r2 = 0.2;
+			maybeExtractField(child, "major_radius", r1);
+			maybeExtractField(child, "minor_radius", r2);
+			obj = new Torus(scene, mat, r1, r2);
+		}
+		else if (name == "particle_emitter")
+		{
+			double numEmit, maxNumParticles;
+			double minLife, maxLife, minSpeed, maxSpeed;
+			vec3f startColorMin, startColorMax, endColorMin, endColorMax;
+			vec3f force;
+
+			maybeExtractField(child, "numEmit", numEmit);
+			maybeExtractField(child, "maxNumParticles", maxNumParticles);
+			maybeExtractField(child, "minLife", minLife);
+			maybeExtractField(child, "maxLife", maxLife);
+			maybeExtractField(child, "minSpeed", minSpeed);
+			maybeExtractField(child, "maxSpeed", maxSpeed);
+
+			startColorMin = tupleToVec(getField(child, "startColorMin"));
+			startColorMax = tupleToVec(getField(child, "startColorMax"));
+			endColorMin = tupleToVec(getField(child, "endColorMin"));
+			endColorMax = tupleToVec(getField(child, "endColorMax"));
+			force = tupleToVec(getField(child, "force"));
+
+			ParticleEmitter* e = new ParticleEmitter(scene, mat,
+				numEmit, maxNumParticles,
+				minLife, maxLife,
+				minSpeed, maxSpeed,
+				startColorMin, startColorMax,
+				endColorMin, endColorMax,
+				force);
+
+			e->init();
+			obj = e;
 		}
 
         obj->setTransform(transform);
@@ -608,7 +647,9 @@ static void processObject( Obj *obj, Scene *scene, mmap& materials )
 				name == "union" ||
 				name == "intersection" ||
 				name == "subtract" ||
-				name == "metaball" ) {
+				name == "metaball" ||
+				name == "torus" ||
+				name == "particle_emitter") {
 		processGeometry( name, child, scene, materials, &scene->transformRoot);
 		//scene->add( geo );
 	} else if( name == "material" ) {

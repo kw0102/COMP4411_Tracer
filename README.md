@@ -20,14 +20,14 @@
 - [ ] Warn model
 - [ ] Bump mapping
 - [ ] Solid textures / Procedural texture mapping
-- [ ] New types of geometry
-- [ ] Height fields
+- [x] New types of geometry (torus)
+- [x] Height fields
 - [x] Effects (DOF, Soft Shadow, Glossy, Motion Blur)
 - [x] Higher-level geometry (metaball)
 - [ ] Optimization
 - [ ] Realistic shading model
 - [x] CSG
-- [ ] Particle systems
+- [x] Particle systems
 - [ ] Caustics
 
 

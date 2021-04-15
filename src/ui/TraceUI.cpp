@@ -11,6 +11,7 @@
 
 #include "TraceUI.h"
 #include "../RayTracer.h"
+#include "../fileio/bitmap.h"
 
 static bool done;
 
@@ -76,6 +77,35 @@ void TraceUI::cb_exit2(Fl_Widget* o, void* v)
 void TraceUI::cb_about(Fl_Menu_* o, void* v) 
 {
 	fl_message("RayTracer Project, FLTK version for CS 341 Spring 2002. Latest modifications by Jeff Maurer, jmaurer@cs.washington.edu");
+}
+
+void TraceUI::cb_loadHeightField(Fl_Menu_* o, void* v)
+{
+	TraceUI* pUI = whoami(o);
+
+	if (!pUI->raytracer->sceneLoaded())
+	{
+		fl_message("Please load the blank.ray scene first.");
+		return;
+	}
+
+	char* newfile = fl_file_chooser("Load Height Field?", "*.bmp", NULL);
+
+	if (newfile != NULL) {
+		int width, height;
+		char greyfile[256];
+		strncpy(greyfile, newfile, strlen(newfile) - 4);
+		strcat(greyfile, "grey_.bmp\0");
+		unsigned char* bitmap = readBMP(newfile, width, height);
+		unsigned char* greymap = readBMP(greyfile, width, height);
+		if (greymap == NULL)
+		{
+			fl_message("Corresponding grey map not found.");
+			return;
+		}
+		pUI->raytracer->loadHeightField(greymap, bitmap, width, height);
+		delete[] bitmap;
+	}
 }
 
 void TraceUI::cb_sizeSlides(Fl_Widget* o, void* v)
@@ -289,6 +319,7 @@ Fl_Menu_Item TraceUI::menuitems[] = {
 	{ "&File",		0, 0, 0, FL_SUBMENU },
 		{ "&Load Scene...",	FL_ALT + 'l', (Fl_Callback *)TraceUI::cb_load_scene },
 		{ "&Save Image...",	FL_ALT + 's', (Fl_Callback *)TraceUI::cb_save_image },
+		{ "Load HField Map ",		   0, (Fl_Callback *)TraceUI::cb_loadHeightField },
 		{ "&Exit",			FL_ALT + 'e', (Fl_Callback *)TraceUI::cb_exit },
 		{ 0 },
 
