@@ -134,3 +134,53 @@ vec3f SpotLight::shadowAttenuation(const vec3f& P) const
 	return ret;
 }
 
+double WarnModelLight::distanceAttenuation(const vec3f& P) const
+{
+	
+	double x = P[0];
+	double y = P[1];
+	double t;
+	vec4f p = matrix * vec4f({ p[0],p[1],p[2],1 });
+	bool v = false;
+	//printf("start show");
+	switch (type)
+	{
+	case Type::kSquare:
+		if (x > -size && x< size && y>-size && y < size) {
+			v = true;
+			
+		}
+		break;
+	case Type::kTriangle:
+		t = tan(3.141592653 / 3);
+		if (y > -size / 2 && y < t*x + size && y < -t*x + size) {
+			v = true;
+		}
+		break;
+	case Type::kStar:
+		t = tan(3.141592653 / 3);
+		if ((y > -size / 2 && y < t * x + size && y < -t * x + size)
+			|| (y < size / 2 && y > t * x - size && y > -t * x - size)){
+			v = true;
+			
+		}
+		break;
+	default:
+		//do nothing 
+		
+		v = false;
+	}
+
+	if (v == true) {
+		
+		return PointLight::distanceAttenuation(P);
+	}
+	else
+	{
+		return 0.0;
+	}
+	
+
+
+}
+

@@ -16,7 +16,7 @@ using namespace std;
 #include "material.h"
 #include "camera.h"
 #include "../vecmath/vecmath.h"
-
+#include <vector>
 class Light;
 class Scene;
 
@@ -212,6 +212,9 @@ class SceneObject
 public:
 	virtual const Material& getMaterial() const = 0;
 	virtual void setMaterial( Material *m ) = 0;
+	//check texture mapping
+	virtual bool getLocalUV(const ray& r, const isect& i, double& u, double& v) const { return false; }
+	
 
 protected:
 	SceneObject( Scene *scene )
@@ -228,7 +231,9 @@ public:
 
 	virtual const Material& getMaterial() const { return *material; }
 	virtual void setMaterial( Material *m )	{ material = m; }
-
+	//check texture mapping 
+		virtual bool getLocalUV(const ray& r, const isect& i, double& u, double& v) const {return false;}
+		
 protected:
 	MaterialSceneObject( Scene *scene, Material *mat ) 
 		: SceneObject( scene ), material( mat ) {}
@@ -253,6 +258,8 @@ public:
 	Scene() 
 		: transformRoot(), objects(), lights() {
 		ambientLight = vec3f(0.0, 0.0, 0.0);
+		texture = NULL;
+		adaptiveTermination = 0;
 	}
 	virtual ~Scene();
 
@@ -271,7 +278,12 @@ public:
 	list<Light*>::const_iterator endLights() const { return lights.end(); }
         
 	Camera *getCamera() { return &camera; }
-
+	
+	//adaptive termination 
+	void setAdaptiveTermination(float tresh);
+	float getAdaptiveTermination();
+	
+	
 	vec3f ambientLight;
 
 	
@@ -282,6 +294,14 @@ private:
 	list<Geometry*> boundedobjects;
     list<Light*> lights;
     Camera camera;
+
+	//texture Mapping
+	bool textureMapping;
+	unsigned char* texture;
+	int textureWidth;
+	int textureHeight;
+	//adaptive Termination
+	float adaptiveTermination;
 	
 	// Each object in the scene, provided that it has hasBoundingBoxCapability(),
 	// must fall within this bounding box.  Objects that don't have hasBoundingBoxCapability()

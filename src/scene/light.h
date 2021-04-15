@@ -39,7 +39,7 @@ class PointLight
 {
 public:
 	PointLight( Scene *scene, const vec3f& pos, const vec3f& color,
-		double _a, double _b, double _c)
+		double _a = 0, double _b=0, double _c=0)
 		: Light( scene, color ), position( pos ), 
 		constantAtt(_a), linearAtt(_b), quadricAtt(_c) {}
 	virtual vec3f shadowAttenuation(const vec3f& P) const;
@@ -78,6 +78,35 @@ public:
 protected:
 	vec3f orientation;
 	double angle;
+};
+class WarnModelLight : public PointLight {
+public:
+	enum struct Type
+	{
+		kSquare,
+		kTriangle,
+		kStar
+	};
+
+	WarnModelLight(Scene* scene, const vec3f& pos, const vec3f& color,
+		double _a,double _b,double _c,const vec3f& orientation,const double size) :
+		PointLight(scene, pos, color,_a,_b,_c),orientation(orientation),size(size) {
+		u = orientation.cross({ 0,1,0 }).normalize();
+		v = orientation.cross(u).normalize();
+		u = orientation.cross(v).normalize();
+		mat4f translate({ 1,0,0,-pos[0] }, { 0,1,0,-pos[1] }, { 0,0,1,-pos[2] }, { 0,0,0,0 });
+		mat4f rotate({ u[0],u[1],u[2],0 }, { v[0],v[1],v[2],0 }, { orientation[0],orientation[1],orientation[2],0 }, { 0,0,0,1 });
+		mat4f project({ 1,0,0,0 }, { 0,1,0,0 }, { 0,0,1,0 }, { 0,0,1,0 });
+		matrix = project * rotate * translate;
+		
+	}
+	virtual double distanceAttenuation(const vec3f& P) const override;
+	void setType(Type type) { this->type = type; }
+protected:
+	vec3f orientation,u,v;
+	Type type = Type::kSquare;
+	mat4f matrix;
+	double size;
 };
 
 #endif // __LIGHT_H__

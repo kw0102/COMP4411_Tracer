@@ -173,5 +173,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Makefile" />
+    <None Include="simpleSamples\box_texture.ray" />
+    <None Include="bonusSamples\box_dist_atten_warnlight.ray" />
   </ItemGroup>
 </Project>
