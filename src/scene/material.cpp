@@ -2,16 +2,13 @@
 #include "material.h"
 #include "light.h"
 
-#define MAX(a,b) (a > b ? a : b)
-#define MIN(a,b) (a < b ? a : b)
-
 unsigned int Material::n = 0;
 
 vec3f getTextureColor(const unsigned char* textureImg, int width, int height, float u, float v);
-
+double getPixelIntensity(unsigned char* bump, int width, int height, int x, int y);
 // Apply the phong model to this point on the surface of the object, returning
 // the color of that point.
-vec3f Material::shade( Scene *scene, const ray& r, const isect& i , const unsigned char* textureImg,const int width, const int height, const unsigned char* bump) const
+vec3f Material::shade( Scene *scene, const ray& r, const isect& i , const unsigned char* textureImg,const int width, const int height, unsigned char* bump) const
 {
 	// YOUR CODE HERE
 
@@ -56,20 +53,40 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i , const unsign
 				kdmp=getTextureColor(textureImg, width, height, u, v);
 			}
 			if(bump){
-				int x = MAX(0, MIN(u * width, width - 1));
-				int y = MAX(0, MIN(v * height, height - 1));
-				double Bu = -bump[x + y * width] + bump[MIN(x + 1, width - 1) + y * width];
-				double Bv = -bump[x + y * width] + bump[x + MIN(y + 1, height - 1) * width];
-				vec3f Pu(0.0, 1.0, 0.0);
-				vec3f Pv(1.0, 0.0, 0.0);
-				N = N + (Bu * i.N).cross(Pv) + (Bv * i.N).cross(Pu);
-				N= N.normalize();
+				
+				int x = min(width - 1, int(u * double(width)));
+				int y = min(height - 1, int(v * double(height)));
+
+				if (x >= 1 && x <= width - 1 && y >= 1 && y <= width) {
+					double Gx = getPixelIntensity(bump, width, height, x - 1, y + 1) * -1 +
+						getPixelIntensity(bump, width, height, x - 1, y) * -2 +
+						getPixelIntensity(bump, width, height, x - 1, y - 1) * -1 +
+						getPixelIntensity(bump, width, height, x + 1, y + 1) * 1 +
+						getPixelIntensity(bump, width, height, x - 1, y) * 2 +
+						getPixelIntensity(bump, width, height, x - 1, y - 1) * 1;
+
+					double Gy = getPixelIntensity(bump, width, height, x - 1, y + 1) * -1 +
+						getPixelIntensity(bump, width, height, x, y + 1) * -2 +
+						getPixelIntensity(bump, width, height, x + 1, y + 1) * -1 +
+						getPixelIntensity(bump, width, height, x - 1, y - 1) * 1 +
+						getPixelIntensity(bump, width, height, x, y - 1) * 2 +
+						getPixelIntensity(bump, width, height, x + 1, y - 1) * 1;
+
+
+					vec3f Pu(0.0, 1.0, 0.0);
+					vec3f Pv(1.0, 0.0, 0.0);
+					Gx *= 35.0;
+					Gy *= 35.0;
+					if (sqrt(Gx * Gx + Gy * Gy) > 0.9) {
+						N = N + Gx*Pv + Gy*Pv;
+					}
+					N = N.normalize();
 				}
+			}
 		}
 		else {
 			kdmp = kd;
 		}
-		
 		
 		double diffFactor = max(0.0, N.dot(L));
 		vec3f R = L - 2 * L.dot(N) * N;
@@ -80,6 +97,7 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i , const unsign
 		ret = prod(ret, shadowAtt);
 
 		color += ret;
+		color.clamp();
 	}
 
 	return color;
@@ -102,3 +120,21 @@ vec3f getTextureColor(const unsigned char* textureImg, int width, int height, fl
 	return vec3f(val1, val2, val3);
 }
 
+
+double getPixelIntensity(unsigned char* bump, int width, int height, int x, int y) {
+	if (x >= 0 && x < width && y >= 0 && y < height) {
+		unsigned char* pixel = bump + (x + y * width) * 3;
+		int r = (int)*pixel;
+		int g = (int)*(pixel + 1);
+		int b = (int)*(pixel + 2);
+		vec3f color = vec3f((float)r / float(255), (float)g / 255.0f, (float)b / 255.0f).clamp();
+		double result = 0.299 * color[0] + 0.587 * color[1] + 0.114 * color[2];
+		
+		return result;
+		
+	}
+	else {
+		printf("zero");
+		return 0.0;
+	}
+}
