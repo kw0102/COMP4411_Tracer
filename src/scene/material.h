@@ -39,7 +39,7 @@ public:
         uid = n++;
     }
     
-    virtual vec3f shade(Scene* scene, const ray& r, const isect& i, const unsigned char* texturImg = NULL, const int width = 0, const int height = 0, const unsigned char* bump = NULL) const;
+    virtual vec3f shade(Scene* scene, const ray& r, const isect& i, const unsigned char* texturImg = NULL, const int width = 0, const int height = 0, unsigned char* bump = NULL) const;
     
   
 

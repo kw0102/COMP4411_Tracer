@@ -152,17 +152,37 @@ bool Cylinder::getLocalUV(const ray& r, const isect& i, double& u, double& v) co
 
 	ray localRay(pos, dir);
 	isect icopy = i;
+	
 	if (intersectLocal(localRay, icopy)) {
 		vec3f localIscePoint = localRay.at(icopy.t);
-		v = localIscePoint[2];
-		
-		double theta = atan2f(localIscePoint[1], localIscePoint[2]);
-		double rawu = theta / 2 / 3.141592653;
-		double ut = 1 - (rawu + 0.5);
-		//double ut = acosf(localIscePoint[0])/2/3.141592653;
-		if (ut > 0) u = ut;
-		else u = 1 - ut;
-		return true;
+
+		if (intersectBody(localRay, icopy)) {
+			double z = localIscePoint[2];
+			if (0 >= z || 1 <= z) {
+				return false;
+			}
+			v = z;
+			double theta = atan2f(localIscePoint[1], localIscePoint[2]);
+			double rawu = theta / 2 / 3.141592653;
+			double ut = 1 - (rawu + 0.5);
+			if (ut > 0) u = ut;
+			else u = 1 - ut;
+			
+			return true;
+		}
+
+		if (intersectCaps(localRay, icopy)) {
+			
+			double x = localIscePoint[0];
+			double y = localIscePoint[1];
+			double phi = sqrt(x * x + y * y);
+			v = phi;
+			double theta = acosf(x / (phi));
+			double ut = theta / 2 / 3.141592653;
+			if (ut > 0) u = ut;
+			else u = 1 - ut;
+			return true;
+		}
 	}
 	else
 	{

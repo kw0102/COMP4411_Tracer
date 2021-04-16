@@ -144,7 +144,6 @@ void TraceUI::cb_load_bumpMap(Fl_Menu_* o, void* v)
 	char* newfile = fl_file_chooser("Load Bump?", "*.bmp", NULL);
 	if (newfile != NULL) {
 		pUI->raytracer->loadBumpping(newfile);
-
 	}
 }
 
@@ -267,10 +266,6 @@ void TraceUI::cb_textureMappingButton(Fl_Widget* o, void* v)
 	TraceUI* pUI = ((TraceUI*)(o->user_data()));
 	RayTracer* rt = pUI->raytracer;
 	rt->useTexture = !rt->useTexture;
-	if (rt->useTexture)
-		printf("true");
-	else
-		printf("false");
 }
 
 void TraceUI::cb_bumppingButton(Fl_Widget* o, void* v)

@@ -244,11 +244,9 @@ void RayTracer::loadBumpping(char* Img)
 		return;
 	}
 	if (data) {
-		bumpping = new unsigned char[bump_width * bump_height];
-		for (int i = 0; i < bump_width * bump_height * 3; i += 3) {
-			bumpping[i / 3] = (data[i] + data[i + 1] + data[i + 2]) / 3;
+		bumpping = data;
 		}
-	}
+	
 }
 
 

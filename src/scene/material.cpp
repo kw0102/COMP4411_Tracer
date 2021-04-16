@@ -75,8 +75,8 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i , const unsign
 
 					vec3f Pu(0.0, 1.0, 0.0);
 					vec3f Pv(1.0, 0.0, 0.0);
-					Gx *= 35.0;
-					Gy *= 35.0;
+					Gx *= 32.0;
+					Gy *= 32.0;
 					if (sqrt(Gx * Gx + Gy * Gy) > 0.9) {
 						N = N + Gx*Pv + Gy*Pv;
 					}
@@ -134,7 +134,6 @@ double getPixelIntensity(unsigned char* bump, int width, int height, int x, int 
 		
 	}
 	else {
-		printf("zero");
 		return 0.0;
 	}
 }
